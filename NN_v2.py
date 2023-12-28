@@ -1,4 +1,4 @@
-def main():
+def main(time_count, threashold):
     import pandas as pd
     import numpy as np
     from keras.models import Sequential
@@ -7,16 +7,19 @@ def main():
     import tensorflow as tf
     from tensorflow.python.keras import layers
     from tensorflow import _KerasLazyLoader
+    from tensorflow.python.keras import regularizers
     from tensorflow.python.keras.callbacks import EarlyStopping
     from sklearn.model_selection import train_test_split
     from sklearn.preprocessing import StandardScaler
     from sklearn.metrics import mean_squared_error, r2_score
+    import matplotlib.pyplot as plot
+
 
     # Make numpy values easier to read.
     np.set_printoptions(precision=3, suppress=True)
 
-    data = pd.read_csv(r"dataset\categorical_dataset.csv")
-    data_x = data.drop(columns=["SALARY", "STUDENTID"])
+    data = pd.read_csv(r"dataset\dataset.csv")
+    data_x = data.drop(columns=["SALARY", "STUDENTID", "COURSE ID"])
     data_y = data.pop("SALARY")
 
     X_train, X_test, y_train, y_test = train_test_split(data_x, data_y, test_size=0.2, random_state=42)
@@ -26,8 +29,11 @@ def main():
     X_test_scaled = scaler.transform(X_test)
 
     model = Sequential()
-    model.add(Dense(16, activation='relu', input_shape=(X_train.shape[1],)))
-    model.add(Dense(8, activation='relu'))
+    model.add(Dense(16, activation='relu', 
+                    input_shape=(X_train.shape[1], ), 
+                    kernel_regularizer=regularizers.l1(0.1)))
+    model.add(Dense(8, activation='relu', 
+                    kernel_regularizer=regularizers.l1(0.1)))
     model.add(Dense(1, activation='linear'))
 
     model.compile(optimizer='adam', loss='mean_squared_error')
@@ -61,8 +67,10 @@ def main():
     r_squared = r2_score(y_test, y_pred)
     print('R-squared:', r_squared) 
 
-    if r_squared <-0.05:
+    if r_squared < threashold:
         print("R-squared is negative, EOF")
+        print("\n\n-----EOF-----", time_count, "-----EOD-----\n\n")
+        return([r_squared, mse])
     else:
         import shap
 
@@ -72,8 +80,21 @@ def main():
         # 計算 SHAP 值
         shap_values = explainer.shap_values(X_test)
 
-        shap.summary_plot(shap_values, X_test, plot_type="bar")
-        shap.summary_plot(shap_values, X_test, feature_names=X_train.columns)
+        shap.summary_plot(shap_values, X_test, plot_type="bar", show=False)
+        plot.savefig('xx_bar'+str(time_count)+'.png', format='png', dpi=800, bbox_inches='tight')
+        plot.close()
+
+        shap.summary_plot(shap_values, X_test, feature_names=X_train.columns, show=False)
+        plot.savefig('xx_dis'+str(time_count)+'.png', format='png', dpi=800)
+        plot.close()
+        return([r_squared, mse])
 
 if __name__ == "__main__":
-    main()
+    threashold = 0.1
+    r2 = []
+    for i in range(30):
+        r2.append(main(time_count = i, threashold = threashold))
+    
+    for i in range(len(r2)):
+        if r2[i][0] > threashold:
+            print('run', i, '\tr2:', r2[i][0], '\tmse:', r2[i][1])
