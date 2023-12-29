@@ -1,4 +1,3 @@
-# 導入函式庫
 import numpy as np  
 from keras.models import Sequential
 from keras.datasets import mnist
@@ -7,7 +6,7 @@ from tensorflow.python.keras.utils import np_utils  # 用來後續將 label 標�
 from matplotlib import pyplot as plt
 
 # 載入 MNIST 資料庫的訓練資料，並自動分為『訓練組』及『測試組』
-(X_train, y_train), (X_test, y_test) = mnist.load_data(r"C:\Users\Kuan\Desktop\Education-Analysis\dataset\dataset.csv")
+(X_train, y_train), (X_test, y_test) = mnist.load_data("./dataset/dataset.csv")
 
 # 建立簡單的線性執行的模型
 model = Sequential()

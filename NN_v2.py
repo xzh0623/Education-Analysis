@@ -18,7 +18,7 @@ def main(time_count, threashold):
     # Make numpy values easier to read.
     np.set_printoptions(precision=3, suppress=True)
 
-    data = pd.read_csv(r"dataset\dataset.csv")
+    data = pd.read_csv("./dataset/dataset.csv")
     data_x = data.drop(columns=["SALARY", "STUDENTID", "COURSE ID"])
     data_y = data.pop("SALARY")
 
